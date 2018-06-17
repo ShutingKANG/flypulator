@@ -60,10 +60,8 @@ class PropulsionPlugin : public ModelPlugin
   double a = 5.7;    //2D_lift_curve_slope
   double th0 = 0.7;  //Profile inclination angle
   double thtw = 0.5; //Inclination change along radius
-  double pa;         //blade pitch angle
   double B = 0.98;   //tip loss factor
   double pho = 1.2;  //air density
-  double A;          //wing area
   double ki = 1.15;  //factor to calculate torque
   double k = 4.65;   //factor to calculate torque
   //coefficients to calculate induced velocity Vi in vortex ring state
@@ -73,9 +71,12 @@ class PropulsionPlugin : public ModelPlugin
   double k3 = -1.718;
   double k4 = -0.655;
   double CD0 = 0.04;      //Profile_Drag_Coefficient from literatur
-  double rv = 13.6 * M_PI / 180.0;     //rotor_axis_vertical_axis_angle cos(rv)=cos(pitch)*cos(yaw)
   double m = 6.15;               //drone_masse
   double g = 9.81;        //gravity acceleration constant
+
+  double pa;         //blade pitch angle
+  double A;          //wing area
+  double rv = 13.6 * M_PI / 180.0;     //rotor_axis_vertical_axis_angle cos(rv)=cos(pitch)*cos(yaw)
   double s;               //rotor solidity
   double Vwind_x = 1e-20; //wind velocity in global x
   double Vwind_y = 1e-20; //wind velocity in global y
@@ -179,19 +180,26 @@ public:
     //get the six blade link
     
     this->link0 = _model->GetChildLink("base_link");
-    for (int i = 0; i<6; i++){
+    for (int i = 0; i<N; i++){
         rotor_link_ptr[i] = _model->GetChildLink(std::string("blade_link_") + std::to_string(i+1));
     }
 
     //load aerodynamic parameters
-    // this->readParamsFromServer();    
+    this->readParamsFromServer();
     
-    //calculation of constants
-    //m = this->link0->GetInertial()->GetMass();
-    s = (N * c) / (M_PI * R);                              //rotor solidity
-    A = M_PI * pow(R, 2);                                  //wing area
-    Vi_h = - 1/B * sqrt((m * g) / (2 * N * pho * A * cos(rv))); //induced airflow velocity in hovering case // multiplied by 1/B according to Hiller eq. 4.58
-    pa = th0 - 0.75 * thtw;                              //blade pitch angle
+    // calculate mass of drone from model
+    m = this->link0->GetInertial()->GetMass();
+    for(int i=0; i<N; i++){
+      m += rotor_link_ptr[i]->GetInertial()->GetMass();
+    }
+    ROS_DEBUG_STREAM("Mass of drone:"<<m);
+
+    s = (N * c) / (M_PI * R); //rotor solidity
+    A = M_PI * pow(R, 2); //wing area
+    //induced airflow velocity in hovering case 
+    // multiplied by 1/B according to Hiller eq. 4.58
+    Vi_h = - 1/B * sqrt((m * g) / (2 * N * pho * A * cos(rv))); 
+    pa = th0 - 0.75 * thtw; //blade pitch angle
 
     // Initialize ros, if it has not already bee initialized.
     if (!ros::isInitialized())
@@ -577,25 +585,58 @@ private:
   void readParamsFromServer()
   {
     ROS_INFO_STREAM("propulsion_plugin: loading aerodynamic parameters...");
-    this->rosNode->param("rotor_number", N, N);
-    this->rosNode->param("blade_chord_width", c, c);
-    this->rosNode->param("blade_radius", R, R);
-    this->rosNode->param("2D_lift_curve_slope", a, a);
-    this->rosNode->param("profile_inclination_angle", th0, th0);
-    this->rosNode->param("radial_inclination_change", thtw, thtw);
-    this->rosNode->param("TLF", B, B);
-    this->rosNode->param("air_density", pho, pho);
-    this->rosNode->param("Profile_Drag_Coefficient", CD0, CD0);
-    this->rosNode->param("rotor_axis_vertical_axis_angle", rv, rv);
-    this->rosNode->param("minimal_rotor_velocity", vel_min, vel_min);
-    this->rosNode->param("maximal_rotor_velocity", vel_max, vel_max);
-    this->rosNode->param("default_blade1_rotation_direction", di_blade_rot[0], di_blade_rot[0]);
-    this->rosNode->param("default_blade2_rotation_direction", di_blade_rot[1], di_blade_rot[1]);
-    this->rosNode->param("default_blade3_rotation_direction", di_blade_rot[2], di_blade_rot[2]);
-    this->rosNode->param("default_blade4_rotation_direction", di_blade_rot[3], di_blade_rot[3]);
-    this->rosNode->param("default_blade5_rotation_direction", di_blade_rot[4], di_blade_rot[4]);
-    this->rosNode->param("default_blade6_rotation_direction", di_blade_rot[5], di_blade_rot[5]);
-    this->rosNode->param("bidirectional_optional", bidirectional, bidirectional);
+
+    if(ros::param::get("aero_param/N", N))
+      ROS_DEBUG_STREAM("Loaded aero_param N : "<< N);
+
+    if(ros::param::get("aero_param/c", c))
+      ROS_DEBUG_STREAM("Loaded aero_param/c : "<< c);
+
+    if(ros::param::get("aero_param/R", R))
+      ROS_DEBUG_STREAM("Loaded aero_param/R : "<< R);
+
+    if(ros::param::get("aero_param/a", a))
+      ROS_DEBUG_STREAM("Loaded aero_param/a : "<< a);
+
+    if(ros::param::get("aero_param/th0", th0))
+      ROS_DEBUG_STREAM("Loaded aero_param/th0 : "<< th0);
+
+    if(ros::param::get("aero_param/thtw", thtw))
+      ROS_DEBUG_STREAM("Loaded aero_param/thtw : "<< thtw);
+
+    if(ros::param::get("aero_param/B", B))
+      ROS_DEBUG_STREAM("Loaded aero_param/B : "<< B);
+
+    if(ros::param::get("aero_param/pho", pho))
+      ROS_DEBUG_STREAM("Loaded aero_param/pho : "<< pho);
+
+    if(ros::param::get("aero_param/ki", ki))
+      ROS_DEBUG_STREAM("Loaded aero_param/ki : "<< ki);
+
+    if(ros::param::get("aero_param/k", k))
+      ROS_DEBUG_STREAM("Loaded aero_param/k : "<< k);
+
+    if(ros::param::get("aero_param/k0", k0))
+      ROS_DEBUG_STREAM("Loaded aero_param/k0 : "<< k0);
+
+    if(ros::param::get("aero_param/k1", k1))
+      ROS_DEBUG_STREAM("Loaded aero_param/k1 : "<< k1);
+
+    if(ros::param::get("aero_param/k2", k2))
+      ROS_DEBUG_STREAM("Loaded aero_param/k2 : "<< k2);
+
+    if(ros::param::get("aero_param/k3", k3))
+      ROS_DEBUG_STREAM("Loaded aero_param/k3 : "<< k3);
+
+    if(ros::param::get("aero_param/k4", k4))
+      ROS_DEBUG_STREAM("Loaded aero_param/k4 : "<< k4);
+
+    if(ros::param::get("aero_param/CD0", CD0))
+      ROS_DEBUG_STREAM("Loaded aero_param/CD0 : "<< CD0);
+
+    if(ros::param::get("aero_param/g", g))
+      ROS_DEBUG_STREAM("Loaded aero_param/g : "<< g);
+      
     ROS_INFO_STREAM("propulsion_plugin: aerodynamic parameters loaded!");
   }
 
