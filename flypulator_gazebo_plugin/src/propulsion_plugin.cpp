@@ -192,7 +192,7 @@ public:
     for(int i=0; i<N; i++){
       m += rotor_link_ptr[i]->GetInertial()->GetMass();
     }
-    ROS_DEBUG_STREAM("Mass of drone:"<<m);
+    ROS_INFO_STREAM("Mass of drone : "<< m << "kg");
 
     s = (N * c) / (M_PI * R); //rotor solidity
     A = M_PI * pow(R, 2); //wing area
