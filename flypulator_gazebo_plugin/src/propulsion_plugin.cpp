@@ -54,26 +54,48 @@ class PropulsionPlugin : public ModelPlugin
   double test_data[12]; // test data for debug
   double ground_effect_coeff; // ground effect coefficient
 
-  int N = 6;         //number of energie
-  double c = 0.016;  //blade chord width
-  double R = 0.75;   //blade radius
-  double a = 5.7;    //2D_lift_curve_slope
-  double th0 = 0.7;  //Profile inclination angle
-  double thtw = 0.5; //Inclination change along radius
-  double B = 0.98;   //tip loss factor
-  double pho = 1.2;  //air density
-  double ki = 1.15;  //factor to calculate torque
-  double k = 4.65;   //factor to calculate torque
-  //coefficients to calculate induced velocity Vi in vortex ring state
-  double k0 = 1.15;
-  double k1 = -1.125;
-  double k2 = -1.372;
-  double k3 = -1.718;
-  double k4 = -0.655;
-  double CD0 = 0.04;      //Profile_Drag_Coefficient from literatur
-  double m = 6.15;               //drone_masse
-  double g = 9.81;        //gravity acceleration constant
+  // int N = 6;         //number of energie
+  // double c = 0.016;  //blade chord width
+  // double R = 0.75;   //blade radius
+  // double a = 5.7;    //2D_lift_curve_slope
+  // double th0 = 0.7;  //Profile inclination angle
+  // double thtw = 0.5; //Inclination change along radius
+  // double B = 0.98;   //tip loss factor
+  // double pho = 1.2;  //air density
+  // double ki = 1.15;  //factor to calculate torque
+  // double k = 4.65;   //factor to calculate torque
+  // //coefficients to calculate induced velocity Vi in vortex ring state
+  // double k0 = 1.15;
+  // double k1 = -1.125;
+  // double k2 = -1.372;
+  // double k3 = -1.718;
+  // double k4 = -0.655;
+  // double CD0 = 0.04;      //Profile_Drag_Coefficient from literatur
+  // double m = 6.15;               //drone_masse
+  // double g = 9.81;        //gravity acceleration constant
 
+  //parameters from external config file(.yaml)
+  int N;       //number of energie
+  double c;    //blade chord width
+  double R;    //blade radius
+  double a;    //2D_lift_curve_slope
+  double th0;  //Profile inclination angle
+  double thtw; //Inclination change along radius
+  double B;    //tip loss factor
+  double pho;  //air density
+  double ki;   //factor to calculate torque
+  double k;    //factor to calculate torque
+  //coefficients to calculate induced velocity Vi in vortex ring state
+  double k0;
+  double k1;
+  double k2;
+  double k3;
+  double k4;
+  double CD0;  //Profile_Drag_Coefficient from literatur
+  double m;    //drone_masse
+  double g;    //gravity acceleration constant
+  
+  // internal parameters
   double pa;         //blade pitch angle
   double A;          //wing area
   double rv = 13.6 * M_PI / 180.0;     //rotor_axis_vertical_axis_angle cos(rv)=cos(pitch)*cos(yaw)
@@ -136,6 +158,10 @@ public:
   virtual void Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   {
     ROS_INFO_STREAM("Loading PropulsionPlugin ...");
+
+    //load aerodynamic parameters
+    this->readParamsFromServer();
+
     if (_model->GetJointCount() == 0)
     {
       ROS_ERROR("Invalid joint count, plugin not loaded");
@@ -184,15 +210,15 @@ public:
         rotor_link_ptr[i] = _model->GetChildLink(std::string("blade_link_") + std::to_string(i+1));
     }
 
-    //load aerodynamic parameters
-    this->readParamsFromServer();
-    
     // calculate mass of drone from model
-    m = this->link0->GetInertial()->GetMass();
+    m = this->link0->GetInertial()->GetMass(); // mass of the base_link
+    // the mass of "base_link" is included the 
+    // mass of all components that fix to the "base_link",
+    // here included 6 arm+motor and 2 leg of the drone
     for(int i=0; i<N; i++){
       m += rotor_link_ptr[i]->GetInertial()->GetMass();
     }
-    ROS_INFO_STREAM("Mass of drone : "<< m << "kg");
+    ROS_INFO_STREAM("Mass of drone : "<< m << "kg"); // show mass of drone
 
     s = (N * c) / (M_PI * R); //rotor solidity
     A = M_PI * pow(R, 2); //wing area
@@ -588,6 +614,10 @@ private:
 
     if(ros::param::get("aero_param/N", N))
       ROS_DEBUG_STREAM("Loaded aero_param N : "<< N);
+    else{
+      ROS_WARN_STREAM("Can't load aerodynamic parameters from yaml file!");
+      return;
+    }
 
     if(ros::param::get("aero_param/c", c))
       ROS_DEBUG_STREAM("Loaded aero_param/c : "<< c);
