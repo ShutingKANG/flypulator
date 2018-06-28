@@ -26,8 +26,8 @@
   <exec_depend>flypulator_control</exec_depend>
   <exec_depend>hector_gazebo_plugins</exec_depend>
 
-   <export>
+   <!-- <export>
     <metapackage />
-  </export>
+  </export> -->
 
 </package>

@@ -187,77 +187,77 @@ public:
     if(loop_cnt >= (g_output_rate_divider-1))
     {
       loop_cnt = 0; // reset loop counter
-      // ROS_INFO_STREAM("I am fake sensor:"<<this->world->GetSimTime().Double());
-      math::Pose drone_pose = this->link0->GetWorldPose();
-      math::Vector3 drone_vel_linear = this->link0->GetWorldLinearVel(); 
-      math::Vector3 drone_vel_angular = this->link0->GetRelativeAngularVel(); 
-      math::Vector3 drone_acc_linear = this->link0->GetWorldLinearAccel();
-      math::Vector3 drone_acc_angular = this->link0->GetRelativeAngularAccel();
+      // ROS_INFO_STREAM("I am fake sensor:"<<this->world->SimTime().Double());
+      ignition::math::Pose3d drone_pose = this->link0->WorldPose();
+     ignition::math::Vector3<double> drone_vel_linear = this->link0->WorldLinearVel(); 
+     ignition::math::Vector3<double> drone_vel_angular = this->link0->RelativeAngularVel(); 
+     ignition::math::Vector3<double> drone_acc_linear = this->link0->WorldLinearAccel();
+     ignition::math::Vector3<double> drone_acc_angular = this->link0->RelativeAngularAccel();
 
       flypulator_common_msgs::UavStateStamped uav_state_msg;
-      uav_state_msg.header.stamp = ros::Time(this->world->GetSimTime().Double());
+      uav_state_msg.header.stamp = ros::Time(this->world->SimTime().Double());
       // pose
-      uav_state_msg.pose.position.x = drone_pose.pos.x;
-      uav_state_msg.pose.position.y = drone_pose.pos.y;
-      uav_state_msg.pose.position.z = drone_pose.pos.z;
+      uav_state_msg.pose.position.x = drone_pose.Pos().X();
+      uav_state_msg.pose.position.y = drone_pose.Pos().Y();
+      uav_state_msg.pose.position.z = drone_pose.Pos().Z();
 
-      // Eigen::Quaterniond q_ItoB (drone_pose.rot.w,drone_pose.rot.x,drone_pose.rot.y,drone_pose.rot.z);
+      // Eigen::Quaterniond q_ItoB (drone_pose.Rot().W(),drone_pose.Rot().X(),drone_pose.Rot().Y(),drone_pose.Rot().Z());
       // Eigen::Quaterniond q_BtoI (q_ItoB.toRotationMatrix().transpose());
-      uav_state_msg.pose.orientation.w = drone_pose.rot.w;
-      uav_state_msg.pose.orientation.x = drone_pose.rot.x;
-      uav_state_msg.pose.orientation.y = drone_pose.rot.y;
-      uav_state_msg.pose.orientation.z = drone_pose.rot.z;
+      uav_state_msg.pose.orientation.w = drone_pose.Rot().W();
+      uav_state_msg.pose.orientation.x = drone_pose.Rot().X();
+      uav_state_msg.pose.orientation.y = drone_pose.Rot().Y();
+      uav_state_msg.pose.orientation.z = drone_pose.Rot().Z();
       // velocity
-      uav_state_msg.velocity.linear.x = drone_vel_linear.x;
-      uav_state_msg.velocity.linear.y = drone_vel_linear.y;
-      uav_state_msg.velocity.linear.z = drone_vel_linear.z;
-      uav_state_msg.velocity.angular.x = drone_vel_angular.x;
-      uav_state_msg.velocity.angular.y = drone_vel_angular.y;
-      uav_state_msg.velocity.angular.z = drone_vel_angular.z;
+      uav_state_msg.velocity.linear.x = drone_vel_linear.X();
+      uav_state_msg.velocity.linear.y = drone_vel_linear.Y();
+      uav_state_msg.velocity.linear.z = drone_vel_linear.Z();
+      uav_state_msg.velocity.angular.x = drone_vel_angular.X();
+      uav_state_msg.velocity.angular.y = drone_vel_angular.Y();
+      uav_state_msg.velocity.angular.z = drone_vel_angular.Z();
       // acceleration
-      uav_state_msg.acceleration.linear.x = drone_acc_linear.x;
-      uav_state_msg.acceleration.linear.y = drone_acc_linear.y;
-      uav_state_msg.acceleration.linear.z = drone_acc_linear.z;
-      uav_state_msg.acceleration.angular.x = drone_acc_angular.x;
-      uav_state_msg.acceleration.angular.y = drone_acc_angular.y;
-      uav_state_msg.acceleration.angular.z = drone_acc_angular.z;
+      uav_state_msg.acceleration.linear.x = drone_acc_linear.X();
+      uav_state_msg.acceleration.linear.y = drone_acc_linear.Y();
+      uav_state_msg.acceleration.linear.z = drone_acc_linear.Z();
+      uav_state_msg.acceleration.angular.x = drone_acc_angular.X();
+      uav_state_msg.acceleration.angular.y = drone_acc_angular.Y();
+      uav_state_msg.acceleration.angular.z = drone_acc_angular.Z();
 
       //ROS_INFO("x noise = %f ", g_noise_generator_x());
       // ROS_INFO("y noise = %f ", g_noise_generator_y());
 
       flypulator_common_msgs::UavStateStamped uav_state_meas_msg;
       // pose
-      uav_state_meas_msg.pose.position.x = drone_pose.pos.x + g_noise_generator_x();
-      uav_state_meas_msg.pose.position.y = drone_pose.pos.y + g_noise_generator_y();
-      uav_state_meas_msg.pose.position.z = drone_pose.pos.z + g_noise_generator_z();
+      uav_state_meas_msg.pose.position.x = drone_pose.Pos().X() + g_noise_generator_x();
+      uav_state_meas_msg.pose.position.y = drone_pose.Pos().Y() + g_noise_generator_y();
+      uav_state_meas_msg.pose.position.z = drone_pose.Pos().Z() + g_noise_generator_z();
 
       // add attitude noise using roll pitch yaw representation (yaw-pitch-roll sequence)
-      math::Vector3 eul (drone_pose.rot.GetRoll(), drone_pose.rot.GetPitch(), drone_pose.rot.GetYaw());
-      eul.x = eul.x + g_noise_generator_roll();
-      eul.y = eul.y + g_noise_generator_pitch();
-      eul.z = eul.z + g_noise_generator_yaw();
-      math::Quaternion q_n (eul);
-      uav_state_meas_msg.pose.orientation.w = q_n.w;
-      uav_state_meas_msg.pose.orientation.x = q_n.x;
-      uav_state_meas_msg.pose.orientation.y = q_n.y;
-      uav_state_meas_msg.pose.orientation.z = q_n.z;
+      ignition::math::Vector3<double> eul (drone_pose.Rot().Roll(), drone_pose.Rot().Pitch(), drone_pose.Rot().Yaw());
+      eul.X() = eul.X() + g_noise_generator_roll();
+      eul.Y() = eul.Y() + g_noise_generator_pitch();
+      eul.Z() = eul.Z() + g_noise_generator_yaw();
+      ignition::math::Quaternion<double> q_n (eul);
+      uav_state_meas_msg.pose.orientation.w = q_n.W();
+      uav_state_meas_msg.pose.orientation.x = q_n.X();
+      uav_state_meas_msg.pose.orientation.y = q_n.Y();
+      uav_state_meas_msg.pose.orientation.z = q_n.Z();
 
       // velocity
-      uav_state_meas_msg.velocity.linear.x = drone_vel_linear.x + g_noise_generator_v_x();
-      uav_state_meas_msg.velocity.linear.y = drone_vel_linear.y + g_noise_generator_v_y();
-      uav_state_meas_msg.velocity.linear.z = drone_vel_linear.z + g_noise_generator_v_z();
-      uav_state_meas_msg.velocity.angular.x = drone_vel_angular.x + g_noise_generator_om_x();
-      uav_state_meas_msg.velocity.angular.y = drone_vel_angular.y + g_noise_generator_om_y();
-      uav_state_meas_msg.velocity.angular.z = drone_vel_angular.z + g_noise_generator_om_z();
+      uav_state_meas_msg.velocity.linear.x = drone_vel_linear.X() + g_noise_generator_v_x();
+      uav_state_meas_msg.velocity.linear.y = drone_vel_linear.Y() + g_noise_generator_v_y();
+      uav_state_meas_msg.velocity.linear.z = drone_vel_linear.Z() + g_noise_generator_v_z();
+      uav_state_meas_msg.velocity.angular.x = drone_vel_angular.X() + g_noise_generator_om_x();
+      uav_state_meas_msg.velocity.angular.y = drone_vel_angular.Y() + g_noise_generator_om_y();
+      uav_state_meas_msg.velocity.angular.z = drone_vel_angular.Z() + g_noise_generator_om_z();
       // acceleration // still very noisy
-      uav_state_meas_msg.acceleration.linear.x = drone_acc_linear.x;
-      uav_state_meas_msg.acceleration.linear.y = drone_acc_linear.y;
-      uav_state_meas_msg.acceleration.linear.z = drone_acc_linear.z;
-      uav_state_meas_msg.acceleration.angular.x = drone_acc_angular.x;
-      uav_state_meas_msg.acceleration.angular.y = drone_acc_angular.y;
-      uav_state_meas_msg.acceleration.angular.z = drone_acc_angular.z;
+      uav_state_meas_msg.acceleration.linear.x = drone_acc_linear.X();
+      uav_state_meas_msg.acceleration.linear.y = drone_acc_linear.Y();
+      uav_state_meas_msg.acceleration.linear.z = drone_acc_linear.Z();
+      uav_state_meas_msg.acceleration.angular.x = drone_acc_angular.X();
+      uav_state_meas_msg.acceleration.angular.y = drone_acc_angular.Y();
+      uav_state_meas_msg.acceleration.angular.z = drone_acc_angular.Z();
 
-      uav_state_meas_msg.header.stamp = ros::Time(this->world->GetSimTime().Double());
+      uav_state_meas_msg.header.stamp = ros::Time(this->world->SimTime().Double());
     
       // publish real states of the simulated drone
       pub_real_state.publish(uav_state_msg);
@@ -299,15 +299,15 @@ private:
   void streamDataToFile(){
     result_file.setf(std::ios::fixed, std::ios::floatfield);
         result_file.precision(5);
-        math::Pose drone_pose = this->link0->GetWorldPose();
-        math::Vector3 eul (drone_pose.rot.GetRoll(), drone_pose.rot.GetPitch(), drone_pose.rot.GetYaw());
-        result_file << this->model->GetWorld()->GetSimTime().Double() << ",";
-        result_file << drone_pose.pos.x << ","
-                    << drone_pose.pos.y << ","
-                    << drone_pose.pos.z << ","
-                    << eul.x << ","
-                    << eul.y << ","
-                    << eul.z;
+        ignition::math::Pose3d drone_pose = this->link0->WorldPose();
+       ignition::math::Vector3<double> eul (drone_pose.Rot().Roll(), drone_pose.Rot().Pitch(), drone_pose.Rot().Yaw());
+        result_file << this->model->GetWorld()->SimTime().Double() << ",";
+        result_file << drone_pose.Pos().X() << ","
+                    << drone_pose.Pos().Y() << ","
+                    << drone_pose.Pos().Z() << ","
+                    << eul.X() << ","
+                    << eul.Y() << ","
+                    << eul.Z();
         result_file << std::endl;  
   }
 

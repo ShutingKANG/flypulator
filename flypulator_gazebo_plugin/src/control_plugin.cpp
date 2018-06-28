@@ -153,7 +153,7 @@ class ControlPlugin : public ModelPlugin
         this->link5 = _model->GetChildLink("blade_link_5");
         this->link6 = _model->GetChildLink("blade_link_6");
         //calculation of constants
-        m = this->link0->GetInertial()->GetMass();
+        m = this->link0->GetInertial()->Mass();
         s = (N * c) / (pi * R);                                //rotor solidity
         Vi_h = -sqrt((m * g) / (2.0 * N * pho * A * cos(rv))); //induced airflow velocity by hover case
         // Initialize ros, if it has not already bee initialized.
@@ -242,22 +242,22 @@ class ControlPlugin : public ModelPlugin
         // double Jzz = this->link0->GetInertial()->GetIZZ();
 
         // math::Pose model_pose = this->link0->GetWorldPose();
-        // math::Vector3 model_pose_trans = model_pose.pos;
+        // ignition::math::Vector3<double> model_pose_trans = model_pose.pos;
         // math::Quaternion model_pose_q = model_pose.rot;
-        // math::Vector3 model_pose_rpy = model_pose_q.GetAsEuler();
+        // ignition::math::Vector3<double> model_pose_rpy = model_pose_q.GetAsEuler();
 
         // float model_roll = model_pose_rpy.x * RAD2DEG;
         // float model_pitch = model_pose_rpy.y * RAD2DEG;
         // float model_yaw = model_pose_rpy.z * RAD2DEG;
 
         // //get robot global linear velocity
-        // modelLinearVel_x = this->link0->GetWorldLinearVel().x;
-        // modelLinearVel_y = this->link0->GetWorldLinearVel().y;
-        // modelLinearVel_z = this->link0->GetWorldLinearVel().z;
+        // modelLinearVel_x = this->link0->WorldLinearVel().x;
+        // modelLinearVel_y = this->link0->WorldLinearVel().y;
+        // modelLinearVel_z = this->link0->WorldLinearVel().z;
         // //get robot global angular velocity
-        // modelAngularVel_x = this->link0->GetWorldAngularVel().x;
-        // modelAngularVel_y = this->link0->GetWorldAngularVel().y;
-        // modelAngularVel_z = this->link0->GetWorldAngularVel().z;
+        // modelAngularVel_x = this->link0->WorldAngularVel().x;
+        // modelAngularVel_y = this->link0->WorldAngularVel().y;
+        // modelAngularVel_z = this->link0->WorldAngularVel().z;
         // //get error for PID controller
         // linearError_x = (modelLinearVel_x - (0 - model_pose_trans.x));
         // linearError_y = (modelLinearVel_y - (0 - model_pose_trans.y));
@@ -318,38 +318,38 @@ class ControlPlugin : public ModelPlugin
             double modelLinearVel_x, modelLinearVel_y, modelLinearVel_z, modelAngularVel_x, modelAngularVel_y, modelAngularVel_z;
             double linearError_x, linearError_y, linearError_z, angularError_x, angularError_y, angularError_z;
             // Get change in time between updates
-            common::Time curTime = this->model->GetWorld()->GetSimTime().Double();
+            common::Time curTime = this->model->GetWorld()->SimTime().Double();
             dt = (curTime - lastSimTime).Double();
             lastSimTime = curTime;
             if (dt < 0.002)
                 return;
             // ROS_INFO_STREAM("dt:" << dt);
             //get inertial in body coordinate
-            double Jxx = this->link0->GetInertial()->GetIXX();
-            double Jyy = this->link0->GetInertial()->GetIYY();
-            double Jzz = this->link0->GetInertial()->GetIZZ();
+            double Jxx = this->link0->GetInertial()->IXX();
+            double Jyy = this->link0->GetInertial()->IYY();
+            double Jzz = this->link0->GetInertial()->IZZ();
 
-            math::Pose model_pose = this->link0->GetWorldPose();
-            math::Vector3 model_pose_trans = model_pose.pos;
-            math::Quaternion model_pose_q = model_pose.rot;
-            math::Vector3 model_pose_rpy = model_pose_q.GetAsEuler();
+            ignition::math::Pose3d model_pose = this->link0->WorldPose();
+            ignition::math::Vector3<double> model_pose_trans = model_pose.Pos();
+            ignition::math::Quaternion<double> model_pose_q = model_pose.Rot();
+            ignition::math::Vector3<double> model_pose_rpy = model_pose_q.Euler();
 
-            float model_roll = model_pose_rpy.x * RAD2DEG;
-            float model_pitch = model_pose_rpy.y * RAD2DEG;
-            float model_yaw = model_pose_rpy.z * RAD2DEG;
+            float model_roll = model_pose_rpy.X() * RAD2DEG;
+            float model_pitch = model_pose_rpy.Y() * RAD2DEG;
+            float model_yaw = model_pose_rpy.Z() * RAD2DEG;
 
             //get robot global linear velocity
-            modelLinearVel_x = this->link0->GetWorldLinearVel().x;
-            modelLinearVel_y = this->link0->GetWorldLinearVel().y;
-            modelLinearVel_z = this->link0->GetWorldLinearVel().z;
+            modelLinearVel_x = this->link0->WorldLinearVel().X();
+            modelLinearVel_y = this->link0->WorldLinearVel().Y();
+            modelLinearVel_z = this->link0->WorldLinearVel().Z();
             //get robot global angular velocity
-            modelAngularVel_x = this->link0->GetWorldAngularVel().x;
-            modelAngularVel_y = this->link0->GetWorldAngularVel().y;
-            modelAngularVel_z = this->link0->GetWorldAngularVel().z;
+            modelAngularVel_x = this->link0->WorldAngularVel().X();
+            modelAngularVel_y = this->link0->WorldAngularVel().Y();
+            modelAngularVel_z = this->link0->WorldAngularVel().Z();
             //get error for PID controller
-            linearError_x = (modelLinearVel_x - (0 - model_pose_trans.x));
-            linearError_y = (modelLinearVel_y - (0 - model_pose_trans.y));
-            linearError_z = (modelLinearVel_z - (Vz_input - model_pose_trans.z));
+            linearError_x = (modelLinearVel_x - (0 - model_pose_trans.X()));
+            linearError_y = (modelLinearVel_y - (0 - model_pose_trans.Y()));
+            linearError_z = (modelLinearVel_z - (Vz_input - model_pose_trans.Z()));
             // linearError_z = (modelLinearVel_z - (3.0 - model_pose_trans.z));
             angularError_x = (modelAngularVel_x - (Wx_input - model_roll));
             angularError_y = (modelAngularVel_y - (Wy_input - model_pitch));
@@ -648,27 +648,27 @@ class ControlPlugin : public ModelPlugin
             T_trans = T.transpose();
             Eigen::Vector3d r1, r2, r3, r4, r5, r6, coc0, coc1, coc2, coc3, coc4, coc5, coc6, ui1, ui2, ui3, ui4, ui5, ui6;
             //get the position of center oc mass
-            coc0(0) = this->link0->GetWorldCoGPose().pos.x;
-            coc0(1) = this->link0->GetWorldCoGPose().pos.y;
-            coc0(2) = this->link0->GetWorldCoGPose().pos.z;
-            coc1(0) = this->link1->GetWorldCoGPose().pos.x;
-            coc1(1) = this->link1->GetWorldCoGPose().pos.y;
-            coc1(2) = this->link1->GetWorldCoGPose().pos.z;
-            coc2(0) = this->link2->GetWorldCoGPose().pos.x;
-            coc2(1) = this->link2->GetWorldCoGPose().pos.y;
-            coc2(2) = this->link2->GetWorldCoGPose().pos.z;
-            coc3(0) = this->link3->GetWorldCoGPose().pos.x;
-            coc3(1) = this->link3->GetWorldCoGPose().pos.y;
-            coc3(2) = this->link3->GetWorldCoGPose().pos.z;
-            coc4(0) = this->link4->GetWorldCoGPose().pos.x;
-            coc4(1) = this->link4->GetWorldCoGPose().pos.y;
-            coc4(2) = this->link4->GetWorldCoGPose().pos.z;
-            coc5(0) = this->link5->GetWorldCoGPose().pos.x;
-            coc5(1) = this->link5->GetWorldCoGPose().pos.y;
-            coc5(2) = this->link5->GetWorldCoGPose().pos.z;
-            coc6(0) = this->link6->GetWorldCoGPose().pos.x;
-            coc6(1) = this->link6->GetWorldCoGPose().pos.y;
-            coc6(2) = this->link6->GetWorldCoGPose().pos.z;
+            coc0(0) = this->link0->WorldCoGPose().Pos().X();
+            coc0(1) = this->link0->WorldCoGPose().Pos().Y();
+            coc0(2) = this->link0->WorldCoGPose().Pos().Z();
+            coc1(0) = this->link1->WorldCoGPose().Pos().X();
+            coc1(1) = this->link1->WorldCoGPose().Pos().Y();
+            coc1(2) = this->link1->WorldCoGPose().Pos().Z();
+            coc2(0) = this->link2->WorldCoGPose().Pos().X();
+            coc2(1) = this->link2->WorldCoGPose().Pos().Y();
+            coc2(2) = this->link2->WorldCoGPose().Pos().Z();
+            coc3(0) = this->link3->WorldCoGPose().Pos().X();
+            coc3(1) = this->link3->WorldCoGPose().Pos().Y();
+            coc3(2) = this->link3->WorldCoGPose().Pos().Z();
+            coc4(0) = this->link4->WorldCoGPose().Pos().X();
+            coc4(1) = this->link4->WorldCoGPose().Pos().Y();
+            coc4(2) = this->link4->WorldCoGPose().Pos().Z();
+            coc5(0) = this->link5->WorldCoGPose().Pos().X();
+            coc5(1) = this->link5->WorldCoGPose().Pos().Y();
+            coc5(2) = this->link5->WorldCoGPose().Pos().Z();
+            coc6(0) = this->link6->WorldCoGPose().Pos().X();
+            coc6(1) = this->link6->WorldCoGPose().Pos().Y();
+            coc6(2) = this->link6->WorldCoGPose().Pos().Z();
             //distance vector in global coordinate
             r1 = -coc1 + coc0;
             r2 = -coc2 + coc0;
@@ -951,9 +951,9 @@ class ControlPlugin : public ModelPlugin
         Vwind_x = _wind_msg->x;
         Vwind_y = _wind_msg->y;
         Vwind_z = _wind_msg->z;
-        Vdrone_x = this->model->GetRelativeLinearVel().x;
-        Vdrone_y = this->model->GetRelativeLinearVel().y;
-        Vdrone_z = this->model->GetRelativeLinearVel().z;
+        Vdrone_x = this->model->RelativeLinearVel().X();
+        Vdrone_y = this->model->RelativeLinearVel().Y();
+        Vdrone_z = this->model->RelativeLinearVel().Z();
         Vx = Vwind_x - Vdrone_x;
         Vy = Vwind_y - Vdrone_y;
         Vz = Vwind_z - Vdrone_z;

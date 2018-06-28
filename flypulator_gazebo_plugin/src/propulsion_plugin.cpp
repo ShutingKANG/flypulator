@@ -142,7 +142,7 @@ class PropulsionPlugin : public ModelPlugin
 
   bool add_dist = true;
 
-  math::Vector3 distforce = math::Vector3(0,0,0);
+  ignition::math::Vector3<double> distforce = ignition::math::Vector3<double>(0,0,0);
 
 
   /// \brief Constructor
@@ -211,12 +211,12 @@ public:
     }
 
     // calculate mass of drone from model
-    m = this->link0->GetInertial()->GetMass(); // mass of the base_link
+    m = this->link0->GetInertial()->Mass(); // mass of the base_link
     // the mass of "base_link" is included the 
     // mass of all components that fix to the "base_link",
     // here included 6 arm+motor and 2 leg of the drone
     for(int i=0; i<N; i++){
-      m += rotor_link_ptr[i]->GetInertial()->GetMass();
+      m += rotor_link_ptr[i]->GetInertial()->Mass();
     }
     ROS_INFO_STREAM("Mass of drone : "<< m << "kg"); // show mass of drone
 
@@ -299,7 +299,7 @@ public:
         std::ofstream result_file(RESULT_CSV_PATH, std::ios::app);
         result_file.setf(std::ios::fixed, std::ios::floatfield);
         result_file.precision(5);
-        result_file << this->model->GetWorld()->GetSimTime().Double() << ","
+        result_file << this->model->GetWorld()->SimTime().Double() << ","
                     << test_data[0] << ","
                     << test_data[1] << ","
                     << test_data[2] << ","
@@ -326,7 +326,7 @@ public:
 
     // ROS_INFO_STREAM(Vx<<","<<Vx<<","<<Vx);
 
-    double curr_time = this->model->GetWorld()->GetSimTime().Double();
+    double curr_time = this->model->GetWorld()->SimTime().Double();
     static double last_time = curr_time;
     double dt = curr_time - last_time;
     last_time = curr_time;
@@ -388,7 +388,7 @@ public:
       rotor_vel[i] = clamp(rotor_vel[i], vel_min, vel_max);
 
     // altitude/height of the drone to the gorund
-    double drone_height = this->link0->GetWorldPose().pos.z; 
+    double drone_height = this->link0->WorldPose().Pos().Z(); 
   
     // TODO: only approximate ground effect, neglect the tilting angle of the drone and propeller
     // calculate ground effect coefficient, T_eff = T_nom/ground_effect_coeff
@@ -403,9 +403,9 @@ public:
 
     // ROS_INFO_STREAM("k:"<<motor1.getK()<<","<<"T:"<<motor1.getT()<<","<<"omega:"<<motor1.getOmega());
 
-    Vdrone_x = this->model->GetRelativeLinearVel().x;
-    Vdrone_y = this->model->GetRelativeLinearVel().y;
-    Vdrone_z = this->model->GetRelativeLinearVel().z;
+    Vdrone_x = this->model->RelativeLinearVel().X();
+    Vdrone_y = this->model->RelativeLinearVel().Y();
+    Vdrone_z = this->model->RelativeLinearVel().Z();
     Vx = Vwind_x - Vdrone_x;
     Vy = Vwind_y - Vdrone_y;
     Vz = Vwind_z - Vdrone_z;
@@ -463,12 +463,12 @@ public:
         // apply to uav
         if(add_wrench_to_drone){
            if (use_simple_aerodynamic){
-              rotor_link_ptr[i]->AddRelativeForce(math::Vector3(0, 0, di_force[i]*k_simple_aero*pow(rotor_vel[i],2)));
-              rotor_link_ptr[i]->AddRelativeTorque(math::Vector3(0, 0, di_blade_rot[i]*b_simple_aero*pow(rotor_vel[i],2)));
+              rotor_link_ptr[i]->AddRelativeForce(ignition::math::Vector3<double>(0, 0, di_force[i]*k_simple_aero*pow(rotor_vel[i],2)));
+              rotor_link_ptr[i]->AddRelativeTorque(ignition::math::Vector3<double>(0, 0, di_blade_rot[i]*b_simple_aero*pow(rotor_vel[i],2)));
            }
            else{
-              rotor_link_ptr[i]->AddRelativeForce(math::Vector3(force_rotor[i].x(), force_rotor[i].y(), force_rotor[i].z()/ground_effect_coeff));
-              rotor_link_ptr[i]->AddRelativeTorque(math::Vector3(torque_rotor[i].x(), torque_rotor[i].y(), torque_rotor[i].z()));
+              rotor_link_ptr[i]->AddRelativeForce(ignition::math::Vector3<double>(force_rotor[i].x(), force_rotor[i].y(), force_rotor[i].z()/ground_effect_coeff));
+              rotor_link_ptr[i]->AddRelativeTorque(ignition::math::Vector3<double>(torque_rotor[i].x(), torque_rotor[i].y(), torque_rotor[i].z()));
            }       
         }       
 
@@ -477,7 +477,7 @@ public:
     if (add_dist){
       this->link0->AddForce(distforce);
       //this->link0->AddTorque(distforce);
-      //this->link0->AddTorque(math::Vector3(1,1,1));
+      //this->link0->AddTorque(ignition::math::Vector3<double>(1,1,1));
     }
 
         //print to file
@@ -541,7 +541,7 @@ public:
     // Vwind_y = _wind_msg->y;
     // Vwind_z = _wind_msg->z;
     ROS_INFO("add disturbance");
-    distforce = math::Vector3 (_wind_msg->x, _wind_msg->y, _wind_msg->z);
+    distforce = ignition::math::Vector3<double>(_wind_msg->x, _wind_msg->y, _wind_msg->z);
   }
 
 public:
@@ -676,11 +676,11 @@ private:
     static tf::TransformBroadcaster T_br;
 
     tf::Transform T_tmp;
-    math::Pose pose_tmp;
+    ignition::math::Pose3d pose_tmp;
 
-    pose_tmp = this->link0->GetWorldPose();
-    T_tmp.setOrigin(tf::Vector3(pose_tmp.pos.x, pose_tmp.pos.y, pose_tmp.pos.z));
-    T_tmp.setRotation(tf::Quaternion(pose_tmp.rot.x, pose_tmp.rot.y, pose_tmp.rot.z, pose_tmp.rot.w));
+    pose_tmp = this->link0->WorldPose();
+    T_tmp.setOrigin(tf::Vector3(pose_tmp.Pos().X(), pose_tmp.Pos().Y(), pose_tmp.Pos().Z()));
+    T_tmp.setRotation(tf::Quaternion(pose_tmp.Rot().X(), pose_tmp.Rot().Y(), pose_tmp.Rot().Z(), pose_tmp.Rot().W()));
     T_br.sendTransform(tf::StampedTransform(T_tmp, ros::Time::now(), "world", "base_link"));
 
     // pose_tmp = this->link1->GetRelativePose();
@@ -731,12 +731,12 @@ private:
     joint_state_msg.name[4] = this->joint5->GetName();
     joint_state_msg.name[5] = this->joint6->GetName();
 
-    joint_state_msg.position[0] = this->joint1->GetAngle(0).Radian();
-    joint_state_msg.position[1] = this->joint2->GetAngle(0).Radian();
-    joint_state_msg.position[2] = this->joint3->GetAngle(0).Radian();
-    joint_state_msg.position[3] = this->joint4->GetAngle(0).Radian();
-    joint_state_msg.position[4] = this->joint5->GetAngle(0).Radian();
-    joint_state_msg.position[5] = this->joint6->GetAngle(0).Radian();
+    joint_state_msg.position[0] = this->joint1->Position(0);
+    joint_state_msg.position[1] = this->joint2->Position(0);
+    joint_state_msg.position[2] = this->joint3->Position(0);
+    joint_state_msg.position[3] = this->joint4->Position(0);
+    joint_state_msg.position[4] = this->joint5->Position(0);
+    joint_state_msg.position[5] = this->joint6->Position(0);
 
     pub_joint_state.publish(joint_state_msg);
   }  
@@ -763,7 +763,7 @@ private:
   void streamDataToFile(){
         result_file.setf(std::ios::fixed, std::ios::floatfield);
         result_file.precision(5);
-        result_file << this->model->GetWorld()->GetSimTime().Double() << ",";
+        result_file << this->model->GetWorld()->SimTime().Double() << ",";
         for (int i = 0; i<6; i++){
           result_file << "rotor" << i << "," << rotor_vel[i]* rotor_vel_raw[i] << ","
                       << force_rotor[i].x() << "," 
