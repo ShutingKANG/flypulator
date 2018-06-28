@@ -20,8 +20,8 @@
   <depend>std_srvs</depend>
   <depend>dynamic_reconfigure</depend>
   <depend>tf</depend>
-  <depend>flypulator_common_msgs</depend>
   <depend>robot_state_publisher</depend>
+  <depend>flypulator_common_msgs</depend>
   
   <exec_depend>gazebo_ros</exec_depend>
   <exec_depend>joint_state_publisher</exec_depend>
