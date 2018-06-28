@@ -1,7 +1,7 @@
-<package>
+<package format="2">
   <name>flypulator</name>
-  <version>0.0.1</version>
-  <description>flypulator contains packages related to modeling, control and simulation of multicopter systems</description>
+  <version>1.0.0</version>
+  <description>The metapackage flypulator contains packages related to modeling, control and simulation of multicopter systems</description>
   <maintainer email="chao.yao@tu-dresden.de">Chao Yao</maintainer>
 
   <license>GPLv3</license>
@@ -18,12 +18,16 @@
   <buildtool_depend>catkin</buildtool_depend>
 
 
-  <run_depend>flypulator_description</run_depend>
-  <run_depend>flypulator_common_msgs</run_depend>
-  <run_depend>flypulator_gazebo_plugin</run_depend>
-  <run_depend>flypulator_traj_generator</run_depend>
-  <run_depend>flypulator_teleoperation</run_depend>
-  <run_depend>flypulator_control</run_depend>
-  <run_depend>hector_gazebo_plugins</run_depend>
+  <exec_depend>flypulator_description</exec_depend>
+  <exec_depend>flypulator_common_msgs</exec_depend>
+  <exec_depend>flypulator_gazebo_plugin</exec_depend>
+  <exec_depend>flypulator_traj_generator</exec_depend>
+  <exec_depend>flypulator_teleoperation</exec_depend>
+  <exec_depend>flypulator_control</exec_depend>
+  <exec_depend>hector_gazebo_plugins</exec_depend>
+
+   <export>
+    <metapackage />
+  </export>
 
 </package>

@@ -140,7 +140,7 @@ add_executable(controller_node src/controller_node.cpp src/controller_interface.
 
 #add_executable(controller_node src/controller_node.cpp src/sliding_mode_controller.cpp)
 
-add_dependencies(controller_node ${PROJECT_NAME}_gencfg)
+add_dependencies(controller_node ${PROJECT_NAME}_gencfg ${catkin_EXPORTED_TARGETS})
 #add_dependencies(controller_node ${${PROJECT_NAME}_EXPORTED_TARGETS}) 
 
 

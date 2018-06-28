@@ -14,17 +14,11 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   sensor_msgs
-  genmsg
   dynamic_reconfigure
   gazebo_msgs
-  controller_manager
   robot_state_publisher
-  effort_controllers
-  controller_interface
-  joint_state_controller
-  hardware_interface
-  position_controllers
   std_srvs
+  tf
   flypulator_common_msgs
 )
 
