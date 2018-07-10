@@ -1,4 +1,4 @@
-PS: merge the develop branch to master only after validation.
+# This repo is moving to Gitlab...
 
 # Flypulator Project
 
